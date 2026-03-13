@@ -204,5 +204,46 @@ def show(entry_id: int):
     syntax = Syntax(diff, "diff", theme="monokai", line_numbers=False)
 
     console.print(Panel(syntax, title="Diff"))
+
+
+@app.command()
+def session_start(name: str):
+    """Start a new AI development session"""
+
+    from rich.console import Console
+
+    console = Console()
+
+    config_file = ".ai-journal/config.json"
+    sessions_dir = ".ai-journal/sessions"
+
+    with open(config_file) as f:
+        config = json.load(f)
+
+    if config.get("current_session"):
+        console.print("[red]A session is already active.[/red]")
+        raise typer.Exit()
+
+    session_id = len(os.listdir(sessions_dir)) + 1
+
+    session = {
+        "id": session_id,
+        "name": name,
+        "entries": []
+    }
+
+    session_file = f"{sessions_dir}/{session_id:03}.json"
+
+    with open(session_file, "w") as f:
+        json.dump(session, f, indent=2)
+
+    config["current_session"] = session_id
+
+    with open(config_file, "w") as f:
+        json.dump(config, f, indent=2)
+
+    console.print(f"[green]Started session #{session_id}: {name}[/green]")
+
+
 if __name__ == "__main__":
     app()
