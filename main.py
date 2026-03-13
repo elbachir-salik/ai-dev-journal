@@ -125,7 +125,7 @@ def record():
 
 
 @app.command()
-def log():
+def log(oneline: bool = typer.Option(False, "--oneline", "-o")):
     """Show AI development history"""
 
     from rich.console import Console
@@ -156,13 +156,16 @@ def log():
         with open(path) as f:
             entry = json.load(f)
 
-        files = ", ".join(entry.get("files", []))
+        if oneline:
+            console.print(f"{entry['id']}  {entry['prompt']}")
+        else:
+            files = ", ".join(entry.get("files", []))
 
-        text = f"[bold]{entry['prompt']}[/bold]\n\n"
-        text += f"[dim]Files:[/dim] {files}\n"
-        text += f"[dim]Time :[/dim] {entry['timestamp']}"
+            text = f"[bold]{entry['prompt']}[/bold]\n\n"
+            text += f"[dim]Files:[/dim] {files}\n"
+            text += f"[dim]Time :[/dim] {entry['timestamp']}"
 
-        console.print(Panel(text, title=f"Entry #{entry['id']}"))
+            console.print(Panel(text, title=f"Entry #{entry['id']}"))
 
 if __name__ == "__main__":
     app()
