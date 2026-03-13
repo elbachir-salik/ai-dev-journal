@@ -123,5 +123,46 @@ def record():
 
     console.print(f"\n[bold green]✓ Recorded AI step #{entry_id}[/bold green]")
 
+
+@app.command()
+def log():
+    """Show AI development history"""
+
+    from rich.console import Console
+    from rich.panel import Panel
+
+    console = Console()
+
+    journal_dir = ".ai-journal"
+    entries_dir = os.path.join(journal_dir, "entries")
+
+    if not os.path.exists(entries_dir):
+        console.print("[red]AI Journal not initialized.[/red]")
+        raise typer.Exit()
+
+    entries = os.listdir(entries_dir)
+
+    if not entries:
+        console.print("[yellow]No AI entries recorded yet.[/yellow]")
+        return
+
+    entries.sort(reverse=True)
+
+    console.print("\n[bold cyan]AI Journal History[/bold cyan]\n")
+
+    for file in entries:
+        path = os.path.join(entries_dir, file)
+
+        with open(path) as f:
+            entry = json.load(f)
+
+        files = ", ".join(entry.get("files", []))
+
+        text = f"[bold]{entry['prompt']}[/bold]\n\n"
+        text += f"[dim]Files:[/dim] {files}\n"
+        text += f"[dim]Time :[/dim] {entry['timestamp']}"
+
+        console.print(Panel(text, title=f"Entry #{entry['id']}"))
+
 if __name__ == "__main__":
     app()
