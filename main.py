@@ -317,6 +317,34 @@ def session_log():
 
         console.print(Panel(text, title=f"Session #{session['id']}"))
 
+@app.command()
+def session_show(session_id: int):
+    """Show details of a session"""
+
+    from rich.console import Console
+
+    console = Console()
+
+    session_file = f".ai-journal/sessions/{session_id:03}.json"
+
+    if not os.path.exists(session_file):
+        console.print("[red]Session not found.[/red]")
+        raise typer.Exit()
+
+    with open(session_file) as f:
+        session = json.load(f)
+
+    console.print(f"\n[bold cyan]Session #{session['id']}[/bold cyan]")
+    console.print(f"[bold]{session['name']}[/bold]\n")
+
+    for entry_id in session["entries"]:
+        entry_file = f".ai-journal/entries/{entry_id:03}.json"
+
+        if os.path.exists(entry_file):
+            with open(entry_file) as f:
+                entry = json.load(f)
+
+            console.print(f"{entry['id']}  {entry['prompt']}")
 
 if __name__ == "__main__":
     app()
