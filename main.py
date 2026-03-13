@@ -44,6 +44,10 @@ def record():
 
     import subprocess
     from datetime import datetime
+    from rich.console import Console
+    from rich.syntax import Syntax
+
+    console = Console()
 
     journal_dir = ".ai-journal"
     entries_dir = os.path.join(journal_dir, "entries")
@@ -55,6 +59,8 @@ def record():
 
     prompt = typer.prompt("Prompt")
 
+    console.print("\n[bold cyan]Capturing git diff...[/bold cyan]\n")
+
     result = subprocess.run(
         ["git", "diff"],
         capture_output=True,
@@ -62,6 +68,15 @@ def record():
     )
 
     diff = result.stdout
+
+    if not diff.strip():
+        console.print("[yellow]No changes detected.[/yellow]")
+        raise typer.Exit()
+
+    console.print("[bold green]Changes detected:[/bold green]\n")
+
+    syntax = Syntax(diff, "diff", theme="monokai", line_numbers=False)
+    console.print(syntax)
 
     with open(config_file) as f:
         config = json.load(f)
@@ -85,8 +100,7 @@ def record():
     with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
 
-    typer.echo(f"Recorded AI step #{entry_id}")
-
+    console.print(f"\n[bold green]Recorded AI step #{entry_id}[/bold green]")
 
 if __name__ == "__main__":
     app()
