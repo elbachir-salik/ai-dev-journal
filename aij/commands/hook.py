@@ -35,9 +35,12 @@ def commit_hook():
     """Triggered automatically after git commit"""
 
     try:
-        if not sys.stdin.isatty():
-            console.print("[yellow]AI Journal: non-interactive terminal detected, skipping prompt.[/yellow]")
+        try:
+            sys.stdin = open("/dev/tty")
+        except Exception:
+            console.print("[yellow]AI Journal: no interactive terminal available.[/yellow]")
             return
+
         # get commit message
         commit_msg = subprocess.run(
             ["git", "log", "-1", "--pretty=%B"],
