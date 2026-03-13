@@ -33,59 +33,75 @@ python main.py commit-hook
 
 def commit_hook():
     """Triggered automatically after git commit"""
-
     try:
+        import platform
+
+        # Open terminal directly — bypasses git's stdin redirection
         try:
-            sys.stdin = open("/dev/tty")
+            if platform.system() == "Windows":
+                conin = open("CONIN$", "r")
+                conout = open("CONOUT$", "w")
+            else:
+                conin = open("/dev/tty", "r")
+                conout = open("/dev/tty", "w")
         except Exception:
             console.print("[yellow]AI Journal: no interactive terminal available.[/yellow]")
             return
 
+        def tty_input(prompt_text):
+            conout.write(prompt_text)
+            conout.flush()
+            return conin.readline().strip()
+
         # get commit message
         commit_msg = subprocess.run(
             ["git", "log", "-1", "--pretty=%B"],
-            capture_output=True,
-            text=True
+            capture_output=True, text=True
         ).stdout.strip()
 
         # get changed files
         files = subprocess.run(
             ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
-            capture_output=True,
-            text=True
+            capture_output=True, text=True
         ).stdout.splitlines()
 
         # get diff
         diff = subprocess.run(
             ["git", "show", "HEAD"],
-            capture_output=True,
-            text=True
+            capture_output=True, text=True
         ).stdout
 
-        console.print("\n[bold cyan]AI Journal detected a new commit[/bold cyan]\n")
+        # get commit SHA
+        sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True, text=True
+        ).stdout.strip()
 
-        console.print(f"[bold]Commit message:[/bold] {commit_msg}")
-
+        conout.write("\nAI Journal detected a new commit\n")
+        conout.write(f"Commit message: {commit_msg}\n")
         if files:
-            console.print("\n[bold]Files changed:[/bold]")
+            conout.write("\nFiles changed:\n")
             for f in files:
-                console.print(f"  • {f}")
+                conout.write(f"  - {f}\n")
+        conout.flush()
 
-        record = input("\nStore this commit in AI Journal? (y/n): ").lower() == "y"
-
+        record = tty_input("\nStore this commit in AI Journal? (y/n): ").lower() == "y"
         if not record:
+            conin.close()
+            conout.close()
             return
 
-        # prompt = typer.prompt("What AI prompt produced this change?")
-        # summary = typer.prompt("Summary (optional)", default="")
-        prompt = input("What AI prompt produced this change? ")
-        summary = input("Summary (optional): ") or ""
+        prompt = tty_input("What AI prompt produced this change? ")
+        summary = tty_input("Summary (optional): ")
+
+        conin.close()
+        conout.close()
 
         config_file = ".ai-journal/config.json"
         entries_dir = ".ai-journal/entries"
 
         if not os.path.exists(config_file):
-            console.print("[red]AI Journal not initialized.[/red]")
+            print("AI Journal not initialized.")
             return
 
         with open(config_file) as f:
@@ -94,7 +110,9 @@ def commit_hook():
         entry_id = config["entries"] + 1
 
         entry = {
+            "schema_version": 1,
             "id": entry_id,
+            "commit_sha": sha,
             "prompt": prompt,
             "summary": summary,
             "files": files,
@@ -102,17 +120,14 @@ def commit_hook():
         }
 
         entry_file = os.path.join(entries_dir, f"{entry_id:03}.json")
-
         with open(entry_file, "w") as f:
             json.dump(entry, f, indent=2)
 
         config["entries"] = entry_id
-
         with open(config_file, "w") as f:
             json.dump(config, f, indent=2)
 
-        console.print(f"\n[green]Recorded AI Journal entry #{entry_id}[/green]")
+        print(f"\nRecorded AI Journal entry #{entry_id}")
 
     except Exception as e:
-        # never break git commit
-        console.print(f"[red]AI Journal hook error:[/red] {e}")
+        print(f"AI Journal hook error: {e}")
