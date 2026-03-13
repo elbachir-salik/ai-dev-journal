@@ -261,6 +261,34 @@ def session_start(name: str):
 
     console.print(f"[green]Started session #{session_id}: {name}[/green]")
 
+@app.command()
+def session_end():
+    """End the current AI session"""
+
+    from rich.console import Console
+
+    console = Console()
+
+    config_file = ".ai-journal/config.json"
+
+    with open(config_file) as f:
+        config = json.load(f)
+
+    if not config.get("current_session"):
+        console.print("[yellow]No active session.[/yellow]")
+        return
+
+    session_id = config["current_session"]
+
+    config["current_session"] = None
+
+    with open(config_file, "w") as f:
+        json.dump(config, f, indent=2)
+
+    console.print(f"[green]Session #{session_id} ended.[/green]")
+
+
+
 
 if __name__ == "__main__":
     app()
