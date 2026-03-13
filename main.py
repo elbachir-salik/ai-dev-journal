@@ -2,26 +2,30 @@ import typer
 import os
 import json
 
-app = typer.Typer()
+app = typer.Typer(help="AI Dev Journal CLI")
+
+@app.callback()
+def main():
+    """
+    AI Dev Journal CLI
+    """
+    pass
+
 
 @app.command()
 def init():
-    """
-    Initialize AI Dev Journal in the current project.
-    """
+    """Initialize AI Dev Journal in the current project"""
 
     journal_dir = ".ai-journal"
     entries_dir = os.path.join(journal_dir, "entries")
     config_file = os.path.join(journal_dir, "config.json")
 
     if os.path.exists(journal_dir):
-        print("AI Journal already initialized.")
-        return
+        typer.echo("AI Journal already initialized.")
+        raise typer.Exit()
 
-    # create folders
     os.makedirs(entries_dir)
 
-    # create config
     config = {
         "version": "0.1",
         "entries": 0
@@ -30,8 +34,8 @@ def init():
     with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
 
-    print("AI Dev Journal initialized.")
-    print("Folder created: .ai-journal")
+    typer.echo("AI Dev Journal initialized.")
+    typer.echo("Created .ai-journal directory")
 
 
 if __name__ == "__main__":
