@@ -46,6 +46,7 @@ def record():
     from datetime import datetime
     from rich.console import Console
     from rich.syntax import Syntax
+    from rich.panel import Panel
 
     console = Console()
 
@@ -54,12 +55,10 @@ def record():
     config_file = os.path.join(journal_dir, "config.json")
 
     if not os.path.exists(journal_dir):
-        typer.echo("AI Journal not initialized. Run 'init' first.")
+        console.print("[red]AI Journal not initialized. Run 'init' first.[/red]")
         raise typer.Exit()
 
-    prompt = typer.prompt("Prompt")
-
-    console.print("\n[bold cyan]Capturing git diff...[/bold cyan]\n")
+    console.print("\n[bold cyan]Checking for code changes...[/bold cyan]\n")
 
     result = subprocess.run(
         ["git", "diff"],
@@ -73,10 +72,31 @@ def record():
         console.print("[yellow]No changes detected.[/yellow]")
         raise typer.Exit()
 
-    console.print("[bold green]Changes detected:[/bold green]\n")
+    # show files changed
+    files = subprocess.run(
+        ["git", "diff", "--name-only"],
+        capture_output=True,
+        text=True
+    ).stdout.splitlines()
+
+    console.print("[bold green]Files changed:[/bold green]")
+    for f in files:
+        console.print(f"  • {f}")
+
+    console.print()
 
     syntax = Syntax(diff, "diff", theme="monokai", line_numbers=False)
-    console.print(syntax)
+    console.print(Panel(syntax, title="Diff Preview"))
+
+    console.print()
+
+    prompt = typer.prompt("Describe this AI change")
+
+    confirm = typer.confirm("Record this entry?")
+
+    if not confirm:
+        console.print("[yellow]Cancelled.[/yellow]")
+        raise typer.Exit()
 
     with open(config_file) as f:
         config = json.load(f)
@@ -87,6 +107,7 @@ def record():
         "id": entry_id,
         "timestamp": str(datetime.now()),
         "prompt": prompt,
+        "files": files,
         "diff": diff
     }
 
@@ -100,7 +121,7 @@ def record():
     with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
 
-    console.print(f"\n[bold green]Recorded AI step #{entry_id}[/bold green]")
+    console.print(f"\n[bold green]✓ Recorded AI step #{entry_id}[/bold green]")
 
 if __name__ == "__main__":
     app()
