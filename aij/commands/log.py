@@ -45,5 +45,5 @@ def log(oneline: bool = typer.Option(False, "--oneline", "-o")):
             files = ", ".join(entry.get("files", []))
             text = f"[bold]{entry['prompt']}[/bold]\n\n"
             text += f"[dim]Files:[/dim] {files}\n"
-            text += f"[dim]Time :[/dim] {entry['timestamp']}"
+            text += f"[dim]Time :[/dim] {entry.get('timestamp', '')}"
             console.print(Panel(text, title=f"Entry #{entry['id']}"))

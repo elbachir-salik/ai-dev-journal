@@ -22,11 +22,11 @@ def show(entry_id: int):
     console.print(f"\n[bold cyan]Entry #{entry['id']}[/bold cyan]\n")
 
     console.print(f"[bold]Prompt:[/bold] {entry['prompt']}")
-    console.print(f"[dim]Time:[/dim] {entry['timestamp']}")
+    console.print(f"[dim]Time:[/dim] {entry.get('timestamp', '')}")
 
     files = ", ".join(entry.get("files", []))
     console.print(f"[dim]Files:[/dim] {files}\n")
 
-    diff = entry["diff"]
+    diff = entry.get("diff", "")
     syntax = Syntax(diff, "diff", theme="monokai", line_numbers=False)
     console.print(Panel(syntax, title="Diff"))
