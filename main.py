@@ -167,5 +167,38 @@ def log(oneline: bool = typer.Option(False, "--oneline", "-o")):
 
             console.print(Panel(text, title=f"Entry #{entry['id']}"))
 
+
+@app.command()
+def show(entry_id: int):
+    """Show details of a specific AI entry"""
+
+    from rich.console import Console
+    from rich.syntax import Syntax
+    from rich.panel import Panel
+
+    console = Console()
+
+    entry_file = f".ai-journal/entries/{entry_id:03}.json"
+
+    if not os.path.exists(entry_file):
+        console.print(f"[red]Entry #{entry_id} not found.[/red]")
+        raise typer.Exit()
+
+    with open(entry_file) as f:
+        entry = json.load(f)
+
+    console.print(f"\n[bold cyan]Entry #{entry['id']}[/bold cyan]\n")
+
+    console.print(f"[bold]Prompt:[/bold] {entry['prompt']}")
+    console.print(f"[dim]Time:[/dim] {entry['timestamp']}")
+
+    files = ", ".join(entry.get("files", []))
+    console.print(f"[dim]Files:[/dim] {files}\n")
+
+    diff = entry["diff"]
+
+    syntax = Syntax(diff, "diff", theme="monokai", line_numbers=False)
+
+    console.print(Panel(syntax, title="Diff"))
 if __name__ == "__main__":
     app()
