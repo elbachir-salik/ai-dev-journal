@@ -1,0 +1,9 @@
+{
+  "id": 1,
+  "timestamp": "2026-03-13 21:31:24.063006",
+  "prompt": "attach sessions to record function",
+  "files": [
+    "main.py"
+  ],
+  "diff": "diff --git a/main.py b/main.py\nindex f3e4523..a760075 100644\n--- a/main.py\n+++ b/main.py\n@@ -76,7 +76,7 @@ def record():\n         console.print(\"[yellow]No changes detected.[/yellow]\")\n         raise typer.Exit()\n \n-    # show files changed\n+    # Get files changed\n     files = subprocess.run(\n         [\"git\", \"diff\", \"--name-only\"],\n         capture_output=True,\n@@ -102,6 +102,7 @@ def record():\n         console.print(\"[yellow]Cancelled.[/yellow]\")\n         raise typer.Exit()\n \n+    # Load config\n     with open(config_file) as f:\n         config = json.load(f)\n \n@@ -120,14 +121,30 @@ def record():\n     with open(entry_file, \"w\") as f:\n         json.dump(entry, f, indent=2)\n \n+    # Update entries count\n     config[\"entries\"] = entry_id\n \n+    # Attach entry to current session if one exists\n+    session_id = config.get(\"current_session\")\n+\n+    if session_id:\n+        session_file = f\".ai-journal/sessions/{session_id:03}.json\"\n+\n+        if os.path.exists(session_file):\n+            with open(session_file) as f:\n+                session = json.load(f)\n+\n+            session[\"entries\"].append(entry_id)\n+\n+            with open(session_file, \"w\") as f:\n+                json.dump(session, f, indent=2)\n+\n+    # Save updated config\n     with open(config_file, \"w\") as f:\n         json.dump(config, f, indent=2)\n \n     console.print(f\"\\n[bold green]\u00e2\u0153\u201c Recorded AI step #{entry_id}[/bold green]\")\n \n-\n @app.command()\n def log(oneline: bool = typer.Option(False, \"--oneline\", \"-o\")):\n     \"\"\"Show AI development history\"\"\"\n"
+}

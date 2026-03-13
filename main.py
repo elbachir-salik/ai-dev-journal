@@ -76,7 +76,7 @@ def record():
         console.print("[yellow]No changes detected.[/yellow]")
         raise typer.Exit()
 
-    # show files changed
+    # Get files changed
     files = subprocess.run(
         ["git", "diff", "--name-only"],
         capture_output=True,
@@ -102,6 +102,7 @@ def record():
         console.print("[yellow]Cancelled.[/yellow]")
         raise typer.Exit()
 
+    # Load config
     with open(config_file) as f:
         config = json.load(f)
 
@@ -120,13 +121,29 @@ def record():
     with open(entry_file, "w") as f:
         json.dump(entry, f, indent=2)
 
+    # Update entries count
     config["entries"] = entry_id
 
+    # Attach entry to current session if one exists
+    session_id = config.get("current_session")
+
+    if session_id:
+        session_file = f".ai-journal/sessions/{session_id:03}.json"
+
+        if os.path.exists(session_file):
+            with open(session_file) as f:
+                session = json.load(f)
+
+            session["entries"].append(entry_id)
+
+            with open(session_file, "w") as f:
+                json.dump(session, f, indent=2)
+
+    # Save updated config
     with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
 
     console.print(f"\n[bold green]✓ Recorded AI step #{entry_id}[/bold green]")
-
 
 @app.command()
 def log(oneline: bool = typer.Option(False, "--oneline", "-o")):
