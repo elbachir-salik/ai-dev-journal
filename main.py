@@ -19,7 +19,7 @@ from aij.commands import record as record_cmd
 from aij.commands import log as log_cmd
 from aij.commands import show as show_cmd
 from aij.commands import session as session_cmd
-
+from aij.commands.hook import install_hook, commit_hook
 app = typer.Typer(help="AI Dev Journal CLI")
 
 
@@ -39,6 +39,8 @@ app.command()(session_cmd.session_start)
 app.command()(session_cmd.session_end)
 app.command()(session_cmd.session_log)
 app.command()(session_cmd.session_show)
+app.command("install-hook")(install_hook)
+app.command("commit-hook")(commit_hook)
 
 
 if __name__ == "__main__":
