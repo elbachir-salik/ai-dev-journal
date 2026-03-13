@@ -19,16 +19,20 @@ def init():
     journal_dir = ".ai-journal"
     entries_dir = os.path.join(journal_dir, "entries")
     config_file = os.path.join(journal_dir, "config.json")
+    sessions_dir = os.path.join(journal_dir, "sessions")
+
 
     if os.path.exists(journal_dir):
         typer.echo("AI Journal already initialized.")
         raise typer.Exit()
 
     os.makedirs(entries_dir)
+    os.makedirs(sessions_dir)
 
     config = {
         "version": "0.1",
-        "entries": 0
+        "entries": 0,
+        "current_session": None
     }
 
     with open(config_file, "w") as f:
