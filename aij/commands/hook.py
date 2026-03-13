@@ -214,7 +214,7 @@ def commit_hook():
 
         conout.write(f"\nRecorded AI Journal entry #{entry_id}\n")
 
-        # --- OFFER SESSION END ---
+        # --- OFFER SESSION END  ---
 
         if current_session:
             end = tty_input(
