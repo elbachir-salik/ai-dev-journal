@@ -64,13 +64,15 @@ def commit_hook():
             for f in files:
                 console.print(f"  • {f}")
 
-        record = typer.confirm("\nStore this commit in AI Journal?")
+        record = input("\nStore this commit in AI Journal? (y/n): ").lower() == "y"
 
         if not record:
             return
 
-        prompt = typer.prompt("What AI prompt produced this change?")
-        summary = typer.prompt("Summary (optional)", default="")
+        # prompt = typer.prompt("What AI prompt produced this change?")
+        # summary = typer.prompt("Summary (optional)", default="")
+        prompt = input("What AI prompt produced this change? ")
+        summary = input("Summary (optional): ") or ""
 
         config_file = ".ai-journal/config.json"
         entries_dir = ".ai-journal/entries"
@@ -106,4 +108,4 @@ def commit_hook():
 
     except Exception as e:
         # never break git commit
-        console.print("[yellow]AI Journal hook error (commit still succeeded)[/yellow]")
+        console.print(f"[red]AI Journal hook error:[/red] {e}")
