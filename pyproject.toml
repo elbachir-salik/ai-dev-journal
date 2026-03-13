@@ -1,0 +1,12 @@
+[project]
+name = "aij"
+version = "0.1.0"
+description = "AI Dev Journal CLI"
+authors = [{name = "Your Name"}]
+dependencies = [
+    "typer",
+    "rich"
+]
+
+[project.scripts]
+aij = "main:app"
