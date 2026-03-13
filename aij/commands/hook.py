@@ -234,3 +234,4 @@ def commit_hook():
 
     except Exception as e:
         print(f"AI Journal hook error: {e}")
+        #test active session
