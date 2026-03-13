@@ -3,6 +3,7 @@ import os
 import subprocess
 import json
 from rich.console import Console
+import sys
 
 console = Console()
 
@@ -34,6 +35,9 @@ def commit_hook():
     """Triggered automatically after git commit"""
 
     try:
+        if not sys.stdin.isatty():
+            console.print("[yellow]AI Journal: non-interactive terminal detected, skipping prompt.[/yellow]")
+            return
         # get commit message
         commit_msg = subprocess.run(
             ["git", "log", "-1", "--pretty=%B"],
