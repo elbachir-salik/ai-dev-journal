@@ -287,7 +287,35 @@ def session_end():
 
     console.print(f"[green]Session #{session_id} ended.[/green]")
 
+@app.command()
+def session_log():
+    """List AI sessions"""
 
+    from rich.console import Console
+    from rich.panel import Panel
+
+    console = Console()
+
+    sessions_dir = ".ai-journal/sessions"
+
+    sessions = os.listdir(sessions_dir)
+
+    if not sessions:
+        console.print("[yellow]No sessions found.[/yellow]")
+        return
+
+    sessions.sort(reverse=True)
+
+    for s in sessions:
+        path = os.path.join(sessions_dir, s)
+
+        with open(path) as f:
+            session = json.load(f)
+
+        text = f"[bold]{session['name']}[/bold]\n"
+        text += f"[dim]Entries:[/dim] {len(session['entries'])}"
+
+        console.print(Panel(text, title=f"Session #{session['id']}"))
 
 
 if __name__ == "__main__":
